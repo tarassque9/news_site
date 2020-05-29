@@ -1,0 +1,48 @@
+{% extends 'news/base.html' %}
+
+{% block title %}registration{% endblock %}
+
+{% block content %}
+<form action="{% url 'registration' %}" method="post">
+	{% csrf_token %}
+	<div class="form-row">
+
+		<div class="col-md-4 mb-3">
+			<label>email</label>
+			{{ form.email }}	
+		</div>
+
+		<div class="col-md-4 mb-3">
+			<label for="validationServer02">password</label>
+			{{ form.password }}
+		</div>
+	</div>
+
+	<div class="form-row">
+		<div class="col-md-3 mb-3">
+			<label for="validationServer03">first name</label>
+			{{ form.first_name }}
+		</div>
+
+		<div class="col-md-3 mb-3">
+			<label for="validationServer03">last name</label>
+			{{ form.last_name }}
+		</div>
+
+		<div class="col-md-3 mb-3">
+			<label for="validationServer05">date of birth</label>
+			{{ form.date_of_birth }}
+		</div>
+
+	</div>
+	<button class="btn btn-primary" type="submit">Submit form</button>
+</form>
+{{ form.errors }}
+{% endblock %}
+
+
+<!-- {{ form.email }} 
+{{ form.password }}
+{{ form.first_name }}
+{{ form.last_name }}
+{{ form.date_of_birth }}  -->

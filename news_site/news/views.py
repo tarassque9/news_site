@@ -1,0 +1,168 @@
+from django.shortcuts import render
+from django.views.generic import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth import authenticate, login, logout
+from .models import User, Post, Comment, ModerationPost
+from .forms import PostCreateForm, RegistrationForm, LoginForm, CommentForm, ModerationForm
+from django.contrib.auth.views import LogoutView
+from .permissions import AdminPermissionsMixin, IsVerificationUserMixin
+from .tasks import send_mail, comment_notification
+from .other import clear_text, uuid_gen
+from .custom import CustomBackend
+
+
+class HomeView(View):
+    template_name = 'news/home.html'
+
+    def get(self, request):
+        posts = Post.objects.order_by('-created')
+        form = CommentForm()
+        comments = Comment.objects.all
+        return render(request, self.template_name, context={'posts': posts, 'form': form, 'comments': comments})
+
+    def post(self, request, id):
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            text = form.cleaned_data['text']
+            user = request.user
+            post = Post.objects.get(id=id)
+            comment = Comment(text=text, user=user, post=post)
+            comment.save()
+            comment_notification.delay(post.user.email)
+            return HttpResponseRedirect('/news')
+        return HttpResponse('[ERROR]')
+
+
+class PostCreateView(View):
+    template_name = 'news/post_create.html'
+
+    def get(self, request):        
+        form = PostCreateForm()
+        return render(request, self.template_name, context={'form': form})
+
+    def post(self, request):
+        role = request.user.role
+        if role == 3:
+            form = ModerationForm(request.POST)
+            if form.is_valid():
+                text = clear_text(form.cleaned_data['text'])
+                title = clear_text(form.cleaned_data['title'])
+                user = request.user.id
+                moderation = ModerationPost(title=title, text=text, moderation_status=user)
+                moderation.save()
+                return HttpResponseRedirect('/news')
+            return HttpResponse('[POST CREATE FORM NOT VALID]')
+        elif role == 1 or 2:
+            form = PostCreateForm(request.POST)
+            if form.is_valid():
+                text = clear_text(form.cleaned_data['text'])
+                title = clear_text(form.cleaned_data['title'])
+                user = User.objects.get(id=request.user.id)
+                post = Post(title=title, text=text, user=user)
+                post.save()
+                return HttpResponseRedirect('/news')
+            return HttpResponse('[POST CREATE FORM NOT VALID]')
+        return HttpResponse('[ERROR]')
+           
+
+class PostDetail(View):
+    template_name = 'news/post_detail.html'
+
+    def get(self, request, id):
+        post = Post.objects.get(id=id)
+        return render(request, self.template_name, context={'post': post})
+
+
+class RegistrationView(View):
+    template_name = 'news/registration.html'
+
+    def get(self, request):
+        form = RegistrationForm()
+        return render(request, self.template_name, context={'form': form})
+
+    def post(self, request):
+        form = RegistrationForm(request.POST)        
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            first_name = form.cleaned_data['first_name'] or None
+            last_name = form.cleaned_data['last_name'] or None 
+            date_of_birth = form.cleaned_data['date_of_birth'] or None
+            new_user = User(email=email, password=password,
+                            first_name=first_name, last_name=last_name,
+                            date_of_birth=date_of_birth)
+            new_user.set_password(new_user.password)
+            new_user.save()
+            link = f'http://127.0.0.1:8000/news/verification/{new_user.uuid}/'
+            send_mail.delay(email, link)
+            login(request, new_user)
+            return HttpResponseRedirect('/news')
+        return HttpResponse('HHZZ')
+        
+
+class LoginView(View, CustomBackend):
+    template_name = 'news/login.html'
+
+    def get(self, request): 
+        form = LoginForm()
+        return render(request, self.template_name, context={'form': form})
+
+    def post(self, request):
+        form = LoginForm(request.POST)
+        # form is not_valid? why?
+        email = request.POST['email']
+        password = request.POST['password']
+        user = authenticate(email=email, password=password)
+        login(request, user)
+        return HttpResponseRedirect('/news')
+        
+
+class LogoutView(LogoutView):
+    pass
+
+
+class ModerationView(AdminPermissionsMixin, View):
+    template_name = 'news/moderation.html'
+    
+    def get(self, request):
+        posts = ModerationPost.objects.order_by('-created')
+        form = ModerationForm()
+        return render(request, self.template_name, context={'posts': posts, 'form': form})
+
+
+class ModerationAccept(View):
+    template_name = 'news/moderation.html'
+
+    def get(self, request, id):
+        moder_post = ModerationPost.objects.get(id=id)
+        print(moder_post.moderation_status)
+        user_id = moder_post.moderation_status
+        print(user_id)
+        user = User.objects.get(id=user_id)
+        post = Post(title=moder_post.title, text=moder_post.text, user=user)
+        moder_post.delete()
+        post.save()
+        return HttpResponseRedirect('/news/moderation')
+
+
+class ModerationDecline(View):
+    template_name = 'news/moderation.html'
+
+    def get(self, request, id):
+        moder_post = ModerationPost.objects.get(id=id)
+        moder_post.delete()
+        return HttpResponseRedirect('/news/moderation')
+
+
+class VerificationView(View):
+    template_name = 'news/test.html'
+
+    def get(self, request, uuid):
+        users = User.objects.all()
+        for user in users:
+            if uuid in user.uuid:
+                user.verification = True
+                user.save()
+                return HttpResponse('[VERIFICATION ACCEPT]')
+

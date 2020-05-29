@@ -1,0 +1,21 @@
+{% extends 'news/base.html' %}
+
+{% block title %}postcreate{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated and user.verification == True %}
+<form action="{% url 'post_create' %}" method="POST">
+    {% csrf_token %}
+    <div class="form-group">        
+    <label for="exampleInputEmail1">Title</label>
+        {{ form.title }}
+    <br>
+    <label for="exampleInputEmail1"></label>
+        {{ form.text | safe }}
+        {{ form.media }}
+    <br>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endif %}
+{% endblock %}

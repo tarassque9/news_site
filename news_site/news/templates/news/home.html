@@ -1,0 +1,35 @@
+{% extends 'news/base.html' %}
+
+{% block title %}home{% endblock %}
+
+{% block content %}
+<center>
+{% for post in posts %}
+ 
+  <div class="card">
+      <div class="card-header">
+      <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a>
+      </div>
+      <div class="card-body">
+        <blockquote class="blockquote mb-0">
+          <p>{{ post.text }}</p>
+          <footer class="blockquote-footer">{{ post.created }}<br/><cite title="Source Title">{{ post.user }}</cite></footer>
+        </blockquote>
+      </div>
+    </div>
+    {% for comment in comments %} 
+      {% if comment.post_id == post.id %}
+        {{ comment }}<br>
+      {% endif %}
+    {% endfor %}
+    <br>  
+  <form action="{% url 'comment' post.id %}" method="post">
+      {% csrf_token %}
+      {{ form.text }}
+      <input type="submit" value="Submit">
+  </form>
+<br>
+{% endfor %}  
+
+</center>
+{% endblock %}

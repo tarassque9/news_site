@@ -1,0 +1,27 @@
+{% extends 'news/base.html' %}
+ 
+{% block content %}
+<center>
+{% for post in posts %}
+    <div class="card">
+        <div class="card-header">
+            {{ post.title }}
+        </div>
+        <div class="card-body">
+        <h5 class="card-title"></h5>
+        <p class="card-text">{{ post.text }}</p>
+
+        <a href="{% url 'moderation_accept' post.id %}" class="btn btn-primary">approve</a>
+        <a href="{% url 'moderation_decline' post.id %}" class="btn btn-primary">decline</a>
+        </div>
+    </div>
+<br>
+{% endfor %}
+</center>
+{% endblock %}
+
+
+
+
+
+
