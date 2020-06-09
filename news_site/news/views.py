@@ -10,6 +10,7 @@ from .permissions import AdminPermissionsMixin, IsVerificationUserMixin
 from .tasks import send_mail, comment_notification
 from .other import clear_text, uuid_gen
 from .custom import CustomBackend
+from logs import logger
 
 
 class HomeView(View):
@@ -19,6 +20,7 @@ class HomeView(View):
         posts = Post.objects.order_by('-created')
         form = CommentForm()
         comments = Comment.objects.all
+        logger.warning('[WARNING MESSAGE]')
         return render(request, self.template_name, context={'posts': posts, 'form': form, 'comments': comments})
 
     def post(self, request, id):

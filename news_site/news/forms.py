@@ -6,21 +6,19 @@ from .other import RequiredFieldsMixin
 class PostCreateForm(forms.ModelForm):    
     class Meta:
         model = Post
-        fields = ['title','text']
-
-    def test_valid(self):
-        data = self.cleaned_data['title']
-        if data == 'aa':
-            raise ValueError('[ERROR]')
+        fields = ['title', 'text']
+    # def test_valid(self):
+    #     data = self.cleaned_data['title']
+    #     if 'aa' in data:
+    #         raise forms.ValidationError('Invalid value')
+    #     return data
 
 
 class RegistrationForm(forms.ModelForm):
     class Meta:
-
         model = User
         fields = ['email', 'password', 'first_name', 'last_name', 'date_of_birth']
-        #fields_required = ['first_name', 'last_name', 'date_of_birth']
-        
+        # fields_required = ['first_name', 'last_name', 'date_of_birth']
         widgets = {
             'email': forms.TextInput(attrs={'class': 'form-control'}),
             'password': forms.PasswordInput(attrs={'class': 'form-control'}),
@@ -29,13 +27,11 @@ class RegistrationForm(forms.ModelForm):
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
         }
 
-        
+
 class LoginForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email', 'password']
-        
-        
         widgets = {
             'email': forms.TextInput(attrs={'class': 'form-group'}),
             'password': forms.PasswordInput(attrs={'class': 'form-group'})

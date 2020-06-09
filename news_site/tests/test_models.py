@@ -14,7 +14,18 @@ class UserModelTest(TestCase):
         self.assertEquals(user.email, 'xx@gmail.com')
 
     def test_length_password(self):
-        max_length = self.user
+        user = User.objects.get(id=1)
+        max_length = user._meta.get_field('password').max_length
+        self.assertEquals(max_length, 100)
+
+        """ 
+        Мы не можем получить поле verbose_name напрямую через author.first_name.verbose_name, 
+        потому что author.first_name является строкой. 
+        Вместо этого, нам надо использовать атрибут _meta объекта автора для получения того экземпляра поля, 
+        который будет использоваться для получения дополнительной информации. 
+        """
+
+    
 
 
 
