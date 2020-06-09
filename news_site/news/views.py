@@ -29,7 +29,7 @@ class HomeView(View):
             post = Post.objects.get(id=id)
             comment = Comment(text=text, user=user, post=post)
             comment.save()
-            comment_notification.delay(post.user.email)
+            #comment_notification.delay(post.user.email)
             return HttpResponseRedirect('/news')
         return HttpResponse('[ERROR]')
 
@@ -82,7 +82,8 @@ class RegistrationView(View):
         return render(request, self.template_name, context={'form': form})
 
     def post(self, request):
-        form = RegistrationForm(request.POST)        
+        form = RegistrationForm(request.POST)
+        print(form.is_valid())        
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
@@ -95,7 +96,7 @@ class RegistrationView(View):
             new_user.set_password(new_user.password)
             new_user.save()
             link = f'http://127.0.0.1:8000/news/verification/{new_user.uuid}/'
-            send_mail.delay(email, link)
+            #send_mail.delay(email, link)
             login(request, new_user)
             return HttpResponseRedirect('/news')
         return HttpResponse('HHZZ')
@@ -150,6 +151,7 @@ class ModerationDecline(View):
     template_name = 'news/moderation.html'
 
     def get(self, request, id):
+
         moder_post = ModerationPost.objects.get(id=id)
         moder_post.delete()
         return HttpResponseRedirect('/news/moderation')

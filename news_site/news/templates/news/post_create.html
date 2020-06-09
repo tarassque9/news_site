@@ -3,7 +3,7 @@
 {% block title %}postcreate{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated and user.verification == True %}
+
 <form action="{% url 'post_create' %}" method="POST">
     {% csrf_token %}
     <div class="form-group">        
@@ -17,5 +17,5 @@
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
-{% endif %}
+
 {% endblock %}

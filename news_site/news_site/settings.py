@@ -14,7 +14,7 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+print(BASE_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -75,10 +75,15 @@ WSGI_APPLICATION = 'news_site.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'news_site',
+        'USER': 'roombambar',
+        'PASSWORD': 'roombambar',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -126,14 +131,16 @@ STATICFILES_DIRS = (
 )
 
 
-#REDIRECT_FIELD_NAME = '/news'
+# REDIRECT_FIELD_NAME = '/news'
+
 LOGOUT_REDIRECT_URL = '/news/login'
 
 
 EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
 MAILGUN_ACCESS_KEY = 'bbff397539578f68cf9030c6e289f929-e5e67e3e-02e03cfe'
 MAILGUN_SERVER_NAME = 'sandbox62526197ba43448f9b4bf78e0d95e096.mailgun.org'
-#EMAIL_PORT = 587
+
+# EMAIL_PORT = 587
 
 
 REDIS_HOST = '0.0.0.0'
@@ -145,3 +152,22 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

@@ -40,31 +40,26 @@ class UserManager(BaseUserManager):
         return user
 
 
-
 class User(AbstractBaseUser):
     email = models.EmailField(verbose_name='email address', max_length=255, unique=True)
     password = models.CharField(max_length=100)
     first_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)# date from datetime module
-
     permissions = (
             (1, '[ADMIN] - Can post without moderation, moderate posts'),
             (2, '[MODERATOR] - Can post without moderation'),
             (3, '[USER] - Can post with moderation')
         )
-
     uuid = models.CharField(max_length=40, default=uuid_gen(), unique=True)
     role = models.IntegerField(verbose_name='User role', default=3, choices=permissions)
     is_active = models.BooleanField(default=True)# banned or not
     is_admin = models.BooleanField(default=False)
-
-    verification = models.BooleanField(default=False)# verification email
-
+    verification = models.BooleanField(default=False)#verification email
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    #REQUIRED_FIELDS = [] # при створенні суперюзера необов*язкові поля які будуть запитуватись(наприклад коли ми створюєвали суперюзера запитувало емеіл опціонально)
+    #REQUIRED_FIELDS = [] - при створенні суперюзера необов*язкові поля які будуть запитуватись(наприклад коли ми створюєвали суперюзера запитувало емеіл опціонально)
 
     def __str__(self):            
         return self.email
@@ -86,15 +81,12 @@ class User(AbstractBaseUser):
 class Post(models.Model):
     title = models.CharField(max_length=200)
     text = RichTextField()
-    created = models.DateTimeField(default=datetime.now) # datetime from datetime
+    created = models.DateTimeField(default=datetime.now)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
-
     def __str__(self):
         return f'{self.title}, {self.text}, {self.created}'
 
-
-class ModerationPost(models.Model): # model
+class ModerationPost(models.Model):
     title = models.CharField(max_length=200)
     text = RichTextField()
     created = models.DateTimeField(default=datetime.now)
@@ -102,7 +94,6 @@ class ModerationPost(models.Model): # model
 
     def __str__(self):
         return f'{self.moderation_status}'
-
 
 class Comment(models.Model):
     text = models.CharField(max_length=300)

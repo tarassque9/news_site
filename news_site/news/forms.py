@@ -2,16 +2,24 @@ from django import forms
 from .models import User, Comment, Post, ModerationPost
 from .other import RequiredFieldsMixin
 
+
 class PostCreateForm(forms.ModelForm):    
     class Meta:
         model = Post
         fields = ['title','text']
 
+    def test_valid(self):
+        data = self.cleaned_data['title']
+        if data == 'aa':
+            raise ValueError('[ERROR]')
+
+
 class RegistrationForm(forms.ModelForm):
     class Meta:
+
         model = User
         fields = ['email', 'password', 'first_name', 'last_name', 'date_of_birth']
-        
+        #fields_required = ['first_name', 'last_name', 'date_of_birth']
         
         widgets = {
             'email': forms.TextInput(attrs={'class': 'form-control'}),
@@ -22,21 +30,23 @@ class RegistrationForm(forms.ModelForm):
         }
 
         
-class LoginForm(RequiredFieldsMixin, forms.ModelForm):
+class LoginForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email', 'password']
-        fields_required = ['first_name', 'last_name', 'date_of_birth']
+        
         
         widgets = {
             'email': forms.TextInput(attrs={'class': 'form-group'}),
             'password': forms.PasswordInput(attrs={'class': 'form-group'})
         }
 
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['text']
+
 
 class ModerationForm(forms.ModelForm):
     class Meta:
