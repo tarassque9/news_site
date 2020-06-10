@@ -12,6 +12,7 @@ from .tasks import send_mail, comment_notification
 from .other import clear_text, uuid_gen
 from .custom import CustomBackend
 from logs import logger
+from .services import UserCreateMixin
 
 
 class HomeView(View):
@@ -78,39 +79,29 @@ class PostCreateView(View):
         return HttpResponse('[ERROR]')
 
 
-class PostDetail(View):
-    template_name = 'news/post_detail.html'
+# class PostDetail(View):
+#     template_name = 'news/post_detail.html'
 
-    def get(self, request, id):
-        post = Post.objects.get(id=id)
-        return render(request, self.template_name, context={'post': post})
+#     def get(self, request, id):
+#         post = Post.objects.get(id=id)
+#         return render(request, self.template_name, context={'post': post})
+
+
 
 
 class RegistrationView(View):
     template_name = 'news/registration.html'
 
     def get(self, request):
-        form = RegistrationForm()
+        form = RegistrationForm(request.POST)
         return render(request, self.template_name, context={'form': form})
 
     def post(self, request):
         form = RegistrationForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            first_name = form.cleaned_data['first_name'] or None
-            last_name = form.cleaned_data['last_name'] or None
-            date_of_birth = form.cleaned_data['date_of_birth'] or None
-            new_user = User(email=email, password=password,
-                            first_name=first_name, last_name=last_name,
-                            date_of_birth=date_of_birth)
-            new_user.set_password(new_user.password)
-            new_user.save()
-            link = f'http://127.0.0.1:8000/news/verification/{new_user.uuid}/'
-            # send_mail.delay(email, link)
-            login(request, new_user)
-            return HttpResponseRedirect('/news')
-        return HttpResponse('HHZZ')
+        if bound_form.is_valid():
+            save_user()
+
+    
 
 
 class LoginView(View, CustomBackend):

@@ -13,6 +13,11 @@
   <div class="form-group">
     <label>Password</label><br>
     {{ form.password }}
+    {% if form.password.errors %}
+								    <div class="alert alert-danger">
+										    {{ form.password.errors }}
+										</div>
+		{% endif %}
   </div>
   <button type="submit" class="btn btn-primary">Submit</button>
 </form>
