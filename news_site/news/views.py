@@ -4,7 +4,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from .models import User, Post, Comment, ModerationPost
-from .forms import PostCreateForm, RegistrationForm, LoginForm, CommentForm, ModerationForm
+from .forms import PostCreateForm, RegistrationForm,\
+                            LoginForm, CommentForm, ModerationForm
 from django.contrib.auth.views import LogoutView
 from .permissions import AdminPermissionsMixin, IsVerificationUserMixin
 from .tasks import send_mail, comment_notification
@@ -20,10 +21,13 @@ class HomeView(View):
         posts = Post.objects.order_by('-created')
         form = CommentForm()
         comments = Comment.objects.all
-        logger.warning('[WARNING MESSAGE]')
-        return render(request, self.template_name, context={'posts': posts, 'form': form, 'comments': comments})
+        context = {'posts': posts,
+                   'form': form,
+                   'comments': comments}
+        return render(request, self.template_name, context=context)
 
     def post(self, request, id):
+        """ Create comment """
         form = CommentForm(request.POST)
         if form.is_valid():
             text = form.cleaned_data['text']
@@ -31,15 +35,17 @@ class HomeView(View):
             post = Post.objects.get(id=id)
             comment = Comment(text=text, user=user, post=post)
             comment.save()
-            #comment_notification.delay(post.user.email)
+            comment_notification.delay(post.user.email)
             return HttpResponseRedirect('/news')
-        return HttpResponse('[ERROR]')
+        msg = f'Comment was not created'
+        logger.warning(msg + f'by user {user.username}')
+        return HttpResponse(msg)
 
 
 class PostCreateView(View):
     template_name = 'news/post_create.html'
 
-    def get(self, request):        
+    def get(self, request):
         form = PostCreateForm()
         return render(request, self.template_name, context={'form': form})
 
@@ -51,9 +57,13 @@ class PostCreateView(View):
                 text = clear_text(form.cleaned_data['text'])
                 title = clear_text(form.cleaned_data['title'])
                 user = request.user.id
-                moderation = ModerationPost(title=title, text=text, moderation_status=user)
+                moderation = ModerationPost(title=title,
+                                            text=text,
+                                            moderation_status=user)
                 moderation.save()
+                logger.info(f'{request.user.username} created the post that was sent to moderation')
                 return HttpResponseRedirect('/news')
+            logger.warning(f'form by user {request.user.username} [NOT VALID]')
             return HttpResponse('[POST CREATE FORM NOT VALID]')
         elif role == 1 or 2:
             form = PostCreateForm(request.POST)
@@ -66,7 +76,7 @@ class PostCreateView(View):
                 return HttpResponseRedirect('/news')
             return HttpResponse('[POST CREATE FORM NOT VALID]')
         return HttpResponse('[ERROR]')
-           
+
 
 class PostDetail(View):
     template_name = 'news/post_detail.html'
@@ -85,12 +95,11 @@ class RegistrationView(View):
 
     def post(self, request):
         form = RegistrationForm(request.POST)
-        print(form.is_valid())        
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             first_name = form.cleaned_data['first_name'] or None
-            last_name = form.cleaned_data['last_name'] or None 
+            last_name = form.cleaned_data['last_name'] or None
             date_of_birth = form.cleaned_data['date_of_birth'] or None
             new_user = User(email=email, password=password,
                             first_name=first_name, last_name=last_name,
@@ -98,16 +107,16 @@ class RegistrationView(View):
             new_user.set_password(new_user.password)
             new_user.save()
             link = f'http://127.0.0.1:8000/news/verification/{new_user.uuid}/'
-            #send_mail.delay(email, link)
+            # send_mail.delay(email, link)
             login(request, new_user)
             return HttpResponseRedirect('/news')
         return HttpResponse('HHZZ')
-        
+
 
 class LoginView(View, CustomBackend):
     template_name = 'news/login.html'
 
-    def get(self, request): 
+    def get(self, request):
         form = LoginForm()
         return render(request, self.template_name, context={'form': form})
 
@@ -119,7 +128,7 @@ class LoginView(View, CustomBackend):
         user = authenticate(email=email, password=password)
         login(request, user)
         return HttpResponseRedirect('/news')
-        
+
 
 class LogoutView(LogoutView):
     pass
@@ -127,11 +136,12 @@ class LogoutView(LogoutView):
 
 class ModerationView(AdminPermissionsMixin, View):
     template_name = 'news/moderation.html'
-    
+
     def get(self, request):
         posts = ModerationPost.objects.order_by('-created')
         form = ModerationForm()
-        return render(request, self.template_name, context={'posts': posts, 'form': form})
+        context = {'posts': posts, 'form': form}
+        return render(request, self.template_name, context=context)
 
 
 class ModerationAccept(View):
@@ -139,9 +149,7 @@ class ModerationAccept(View):
 
     def get(self, request, id):
         moder_post = ModerationPost.objects.get(id=id)
-        print(moder_post.moderation_status)
         user_id = moder_post.moderation_status
-        print(user_id)
         user = User.objects.get(id=user_id)
         post = Post(title=moder_post.title, text=moder_post.text, user=user)
         moder_post.delete()
@@ -153,7 +161,6 @@ class ModerationDecline(View):
     template_name = 'news/moderation.html'
 
     def get(self, request, id):
-
         moder_post = ModerationPost.objects.get(id=id)
         moder_post.delete()
         return HttpResponseRedirect('/news/moderation')
@@ -169,4 +176,3 @@ class VerificationView(View):
                 user.verification = True
                 user.save()
                 return HttpResponse('[VERIFICATION ACCEPT]')
-

@@ -67,9 +67,8 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    #REQUIRED_FIELDS = [] - при створенні суперюзера необов*язкові поля які будуть запитуватись(наприклад коли ми створюєвали суперюзера запитувало емеіл опціонально)
 
-    def __str__(self):            
+    def __str__(self):
         return self.email
 
     def has_perm(self, perm, obj=None):

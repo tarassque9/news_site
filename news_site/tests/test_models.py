@@ -10,7 +10,7 @@ class UserModelTest(TestCase):
 
     def test_email(self):
         user = User.objects.get(id=1)
-        #email = user._meta.get_field('email').verbose_name
+        # email = user._meta.get_field('email').verbose_name
         self.assertEquals(user.email, 'xx@gmail.com')
 
     def test_length_password(self):
