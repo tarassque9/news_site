@@ -22,12 +22,20 @@
         {{ comment }}<br>
       {% endif %}
     {% endfor %}
-    <br>  
-  <form action="{% url 'comment' post.id %}" method="post">
-      {% csrf_token %}
-      {{ form.text }}
-      <input type="submit" value="Submit">
+    <br>
+  
+
+  <form action="{% url 'comment' post.id %}" method="POST">
+    {% csrf_token %}
+    <form class="form-inline">
+      <div class="form-group mx-sm-3 mb-2">
+        <label>Comment</label>
+        {{ form.text }}
+      </div>
+      <button type="submit" class="btn btn-primary mb-2">Submit</button>
+    </form>
   </form>
+
 <br>
 {% endfor %}
 </center>

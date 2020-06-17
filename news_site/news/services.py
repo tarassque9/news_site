@@ -8,6 +8,8 @@ def create_comment(text, user, post):
     comment.save()
     #comment_notification.delay(post.user.email)
 
+#def save_moderation_post()
+
 class UserCreateMixin:
     form = None
 

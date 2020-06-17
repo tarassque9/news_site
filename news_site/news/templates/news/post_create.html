@@ -6,11 +6,15 @@
 
 <form action="{% url 'post_create' %}" method="POST">
     {% csrf_token %}
-    <div class="form-group">        
-    <label for="exampleInputEmail1">Title</label>
-        {{ form.title }}
+    <div class="form-group">  
+        <div class="input-group flex-nowrap">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="addon-wrapping">Title</span>
+            </div>
+            {{ form.title }}
+        </div>          
     <br>
-    <label for="exampleInputEmail1"></label>
+    <label></label>
         {{ form.text | safe }}
         {{ form.media }}
     <br>

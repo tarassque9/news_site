@@ -1,14 +1,27 @@
 import os
+import json
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+with open(os.path.join(BASE_DIR, 'news_site', 'scr.json')) as secrets_file:
+    secrets = json.load(secrets_file)
+
+
+def get_secret(setting, secrets=secrets):
+    """Get secret setting or fail with ImproperlyConfigured"""
+    try:
+        return secrets[setting]
+    except KeyError:
+        raise ImproperlyConfigured("Set the {} setting".format(setting))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', '[SET THE ENVIROMENT VARIABLE]')
+SECRET_KEY = get_secret('SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -68,8 +81,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'news_site',
-        'USER': 'roombambar',
-        'PASSWORD': 'roombambar',
+        'USER': get_secret('DB_USER'),
+        'PASSWORD': get_secret('DB_PASSWORD'),
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -93,7 +106,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
@@ -123,8 +135,8 @@ STATICFILES_DIRS = (
 LOGOUT_REDIRECT_URL = '/news/login'
 
 EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
-MAILGUN_ACCESS_KEY = os.environ.get('MAILGUN_ACCESS_KEY', '[SET THE ENVIROMENT VARIABLE]')
-MAILGUN_SERVER_NAME = os.environ.get('MAILGUN_SERVER_NAME', '[SET THE ENVIROMENT VARIABLE]')
+MAILGUN_ACCESS_KEY = get_secret('MAILGUN_ACCESS_KEY')
+MAILGUN_SERVER_NAME = get_secret('MAILGUN_SERVER_NAME')
 # EMAIL_PORT = 587
 
 REDIS_HOST = '0.0.0.0'
@@ -151,7 +163,7 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'WARNING',
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'formatter': 'verbose',
             'filename': os.path.join(BASE_DIR, 'log.log'),
@@ -171,8 +183,8 @@ LOGGING = {
         # },
         'news_site': {
                 'handlers': ['file'],
-                'level': 'WARNING',
+                'level': 'DEBUG',
                 'propagate': True,
             },
-        },        
+        },
 }
