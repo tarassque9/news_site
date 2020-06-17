@@ -13,22 +13,6 @@ class PostCreateForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': 'form-control'})
         }
 
-# class RegistrationForm(forms.ModelForm):
-#     class Meta:
-#         model = User
-#         fields = ['email', 'password', 'first_name',
-#                   'last_name', 'date_of_birth']
-#         # fields_required = ['first_name', 'last_name', 'date_of_birth']
-#         form_control = {'class': 'form-control'}
-#         widgets = {
-#             'email': forms.TextInput(attrs=form_control),
-#             'password': forms.PasswordInput(attrs=form_control),
-#             'first_name': forms.TextInput(attrs=form_control),
-#             'last_name': forms.TextInput(attrs=form_control),
-#             'date_of_birth': forms.DateInput(attrs={'type': 'date',
-#                                                     'class': 'form-control'})
-#         }
-
 
 class RegistrationForm(forms.Form):
     form_control = {'class': 'form-control'}
