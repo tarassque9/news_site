@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 .vscode/
 planenv/
+.mypy_cache/
+*.log
+scr.json
